@@ -49,7 +49,7 @@ class VoiceGenerator:
                 "Default": "GBv7mTt0atIp3Br8iCZE",    # Glinda, better for Telugu
                 "Female": "jBpfuIE2acCO8z3wKNLl",     # Scarlett, more expressive for Telugu
                 "Male": "onwK4e9ZLuTAKqWW3q9Q",       # Matthew, clearer for Telugu
-                "Wise Grandparent": "g5CIjZEefAph4nQFvHAz",  # Jeremy, warm voice
+                "Wise Grandparent": "GDe4X2T6B9kOAMn6lOH0",  # Jeremy, warm voice
                 "Child's Voice": "jsCqWAovK2LkecY7zXl4",     # Antoni (child-like)
                 "Celebrity-style": "t0jbNlBVZ17f02VDIeMI",   # Callum (professional)
                 "Neutral AI": "SOYHLrjzK2X1ezoPC6cr",        # Sarah (neutral)

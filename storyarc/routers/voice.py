@@ -103,7 +103,7 @@ async def list_available_languages():
     - Dictionary of available languages and their descriptions
     """
     return {
-        "English": "Standard English narration with various voice options including warm grandmother, child, professional, and neutral styles.",
-        "Hindi": "Hindi narration supporting multiple voice styles. Best for authentic Hindi storytelling.",
-        "Telugu": "Telugu narration with multiple voice options. Ideal for Telugu language stories and content."
+        "English": "Standard English narration with various voice options including warm grandmother, child, professional, and neutral styles. Uses eleven_monolingual_v1 model for best quality English pronunciation.",
+        "Hindi": "Hindi narration with authentic accent and pronunciation. Features specialized voices optimized for Hindi language patterns, rhythm, and phonetics. Supports multiple narrator styles including storyteller, formal, and conversational.",
+        "Telugu": "Telugu narration with native-sounding accent and authentic pronunciation. Includes voices specifically tuned for Telugu's unique sounds and intonation. Multiple narrator styles available for different storytelling approaches."
     }

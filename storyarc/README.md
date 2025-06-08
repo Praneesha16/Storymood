@@ -14,7 +14,7 @@ StoryArc is an AI-powered storytelling app that delivers personalized, emotional
 - Python 3.10+
 - FastAPI (web framework)
 - Amazon DynamoDB
-- OpenAI GPT-4
+- Amazon Bedrock (Claude 3)
 - ElevenLabs TTS API
 - Uvicorn (ASGI server)
 
