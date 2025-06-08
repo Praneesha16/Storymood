@@ -28,6 +28,8 @@ class Language(str, Enum):
     ENGLISH = "English"
     HINDI = "Hindi"
     TELUGU = "Telugu"
+    TAMIL = "Tamil"
+    MALAYALAM = "Malayalam"
 
 class NarratorStyle(str, Enum):
     WISE_GRANDPARENT = "Wise Grandparent"
@@ -65,7 +67,6 @@ class StoryGenerationResponse(BaseModel):
 class NarrationRequest(BaseModel):
     story_text: str
     narrator_style: NarratorStyle
-    language: Language = Language.ENGLISH
 
 class NarrationResponse(BaseModel):
     """

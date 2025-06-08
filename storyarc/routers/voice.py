@@ -14,15 +14,15 @@ router = APIRouter()
     response_model=NarrationResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Convert story text to speech with expressive narration",
-    description="Convert the provided story text to speech using the specified narrator style and language (English, Hindi, or Telugu) and return a URL to the generated audio file."
+    description="Convert the provided story text to speech using the specified narrator style. The language is automatically detected from the text content (supports English, Hindi, Telugu, Tamil, and Malayalam)."
 )
 async def narrate_story(request: NarrationRequest):
     """
     Convert the provided story text to speech and save the audio file locally.
+    The language is automatically detected from the text content.
     
-    - **story_text**: The text content of the story to narrate
+    - **story_text**: The text content of the story to narrate (in any supported language: English, Hindi, Telugu, Tamil, and Malayalam)
     - **narrator_style**: The style of narrator voice to use (e.g., Wise Grandparent, Child's Voice)
-    - **language**: The language for narration (e.g., English, Hindi, Telugu)
     
     Returns:
     - **audio_url**: URL path to the generated audio file that can be accessed via the server
@@ -105,5 +105,7 @@ async def list_available_languages():
     return {
         "English": "Standard English narration with various voice options including warm grandmother, child, professional, and neutral styles. Uses eleven_monolingual_v1 model for best quality English pronunciation.",
         "Hindi": "Hindi narration with authentic accent and pronunciation. Features specialized voices optimized for Hindi language patterns, rhythm, and phonetics. Supports multiple narrator styles including storyteller, formal, and conversational.",
-        "Telugu": "Telugu narration with native-sounding accent and authentic pronunciation. Includes voices specifically tuned for Telugu's unique sounds and intonation. Multiple narrator styles available for different storytelling approaches."
+        "Telugu": "Telugu narration with native-sounding accent and authentic pronunciation. Includes voices specifically tuned for Telugu's unique sounds and intonation. Multiple narrator styles available for different storytelling approaches.",
+        "Tamil": "Tamil narration with authentic accent and natural pronunciation. Features voices optimized for Tamil language characteristics including proper stress patterns and phonetics. Supports both male (ValluvarNeural) and female (PallaviNeural) voice options.",
+        "Malayalam": "Malayalam narration with native-sounding voice and authentic pronunciation. Features the SobhanaNeural voice specifically tuned for Malayalam's unique linguistic properties and natural speech patterns."
     }

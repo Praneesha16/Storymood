@@ -7,6 +7,7 @@ import config
 from typing import Dict, Any, Optional
 from models.story_model import NarrationRequest, NarrationResponse, Language
 from utils.prompt_templates import build_narration_prompt
+from langdetect import detect, LangDetectException
 
 class VoiceGenerator:
     def __init__(self):
@@ -45,8 +46,32 @@ class VoiceGenerator:
                 "Neutral AI": "te-IN-SatyaNeural",        # Neutral Telugu voice
                 "Indian English": "en-IN-NeerjaNeural",   # Indian English female voice
                 "Self": "te-IN-SatyaNeural"
+            },
+            "Tamil": {
+                "Default": "ta-IN-PallaviNeural",        # Default Tamil female voice
+                "Female": "ta-IN-PallaviNeural",         # Tamil female voice
+                "Male": "ta-IN-ValluvarNeural",          # Tamil male voice
+                "Wise Grandparent": "ta-IN-PallaviNeural", # Warm voice for Tamil storytelling
+                "Child's Voice": "ta-IN-PallaviNeural",    # Use with style="cheerful"
+                "Celebrity-style": "ta-IN-ValluvarNeural",  # Professional Tamil voice
+                "Neutral AI": "ta-IN-ValluvarNeural",      # Neutral Tamil voice
+                "Indian English": "en-IN-NeerjaNeural",    # Indian English female voice
+                "Self": "ta-IN-PallaviNeural"
+            },
+            "Malayalam": {
+                "Default": "ml-IN-SobhanaNeural",        # Default Malayalam female voice
+                "Female": "ml-IN-SobhanaNeural",         # Malayalam female voice
+                "Male": "ml-IN-SobhanaNeural",           # Same voice (Azure has only female ML voice)
+                "Wise Grandparent": "ml-IN-SobhanaNeural", # Warm voice for Malayalam storytelling
+                "Child's Voice": "ml-IN-SobhanaNeural",    # Use with style="cheerful"
+                "Celebrity-style": "ml-IN-SobhanaNeural",  # Professional Malayalam voice
+                "Neutral AI": "ml-IN-SobhanaNeural",       # Neutral Malayalam voice
+                "Indian English": "en-IN-NeerjaNeural",    # Indian English female voice
+                "Self": "ml-IN-SobhanaNeural"
             }
-        }        # Voice style mappings (style, rate, pitch adjustments)
+        }
+        
+        # Voice style mappings (style, rate, pitch adjustments)
         self.voice_styles = {
             "Wise Grandparent": {
                 "style": "gentle",
@@ -84,8 +109,12 @@ class VoiceGenerator:
         self.language_codes = {
             "English": "en-US",
             "Hindi": "hi-IN",
-            "Telugu": "te-IN"
-        }        # Ensure audio directory exists
+            "Telugu": "te-IN",
+            "Tamil": "ta-IN",
+            "Malayalam": "ml-IN"
+        }
+        
+        # Ensure audio directory exists
         os.makedirs(config.AUDIO_FILES_DIR, exist_ok=True)
     
     def get_audio_file_path(self, filename: str) -> str:
@@ -96,6 +125,35 @@ class VoiceGenerator:
         """Check if an audio file exists in the audio directory."""
         file_path = self.get_audio_file_path(filename)
         return os.path.exists(file_path)
+        
+    def _detect_language(self, text: str) -> Optional[str]:
+        """
+        Automatically detect the language of the text.
+        Returns the language name (English, Hindi, Telugu, etc.) or None if detection fails.
+        """
+        try:
+            # Map of language detection codes to our language enum values
+            lang_map = {
+                'en': 'English',
+                'hi': 'Hindi',
+                'te': 'Telugu',
+                'ta': 'Tamil',
+                'ml': 'Malayalam'
+            }
+            
+            # Detect the language
+            detected_code = detect(text)
+            
+            # Map the detected code to our language enum values
+            if detected_code in lang_map:
+                return lang_map[detected_code]
+            else:
+                print(f"Detected language code '{detected_code}' not supported, falling back to English")
+                return 'English'
+                
+        except LangDetectException as e:
+            print(f"Language detection failed: {str(e)}, falling back to English")
+            return None
     
     def build_ssml(self, text: str, voice_name: str, style_settings: Dict[str, str]) -> str:
         """
@@ -106,26 +164,61 @@ class VoiceGenerator:
         rate = style_settings.get("rate", "+0%")
         pitch = style_settings.get("pitch", "+0%")
         
+        # Determine the language code from the voice name
+        language_code = "en-US"  # Default
+        if "-" in voice_name:
+            voice_lang_code = voice_name.split("-")[0] + "-" + voice_name.split("-")[1]
+            for lang, code in self.language_codes.items():
+                if code == voice_lang_code:
+                    language_code = code
+                    break
+        
+        # Check if the voice-style combination is supported
+        # Some languages might not support all styles
+        use_style_tag = True
+        if language_code in ["ml-IN"]:
+            # Malayalam might have limited style support
+            use_style_tag = (style == "neutral")
+            
         # Build the SSML document
-        ssml = f"""
-        <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="en-US">
-            <voice name="{voice_name}">
-                <mstts:express-as style="{style}" styledegree="1">
+        if use_style_tag:
+            ssml = f"""
+            <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="{language_code}">
+                <voice name="{voice_name}">
+                    <mstts:express-as style="{style}" styledegree="1">
+                        <prosody rate="{rate}" pitch="{pitch}">
+                            {text}
+                        </prosody>
+                    </mstts:express-as>
+                </voice>
+            </speak>
+            """
+        else:
+            # Simplified SSML for languages with limited style support
+            ssml = f"""
+            <speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xmlns:mstts="https://www.w3.org/2001/mstts" xml:lang="{language_code}">
+                <voice name="{voice_name}">
                     <prosody rate="{rate}" pitch="{pitch}">
                         {text}
                     </prosody>
-                </mstts:express-as>
-            </voice>
-        </speak>
-        """
+                </voice>
+            </speak>
+            """
         return ssml
+    
     async def narrate_story(self, request: NarrationRequest) -> NarrationResponse:
         """Convert text to speech using Azure Cognitive Services Speech SDK and save audio locally."""
-        # Get the narration language
-        language = request.language.value
+        # Auto-detect the language from the story text
+        detected_language = self._detect_language(request.story_text)
         
-        # Process the story text
-        story_text_to_narrate = build_narration_prompt(request.story_text, request.narrator_style, request.language)
+        # Use detected language or fallback to English
+        language = detected_language if detected_language else "English"
+        
+        # For logging purposes
+        print(f"Using language: {language}")
+        
+        # Process the story text - pass the detected language directly instead of from request
+        story_text_to_narrate = build_narration_prompt(request.story_text, request.narrator_style, language)
         
         # Select the appropriate voice based on language and narrator style
         if language in self.voice_mapping:
