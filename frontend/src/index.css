@@ -1,0 +1,26 @@
+/* index.css - Global styles */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; font-size: 16px; }
+
+body {
+  margin: 0;
+  font-family: 'Nunito', 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #FFF8F0;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #FFF0E0; }
+::-webkit-scrollbar-thumb { background: #FFB347; border-radius: 10px; }
+
+::selection { background: rgba(255, 179, 71, 0.3); }
+
+*:focus { outline: 3px solid #FFB347; outline-offset: 2px; border-radius: 8px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

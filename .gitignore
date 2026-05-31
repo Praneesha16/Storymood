@@ -1,0 +1,42 @@
+# Virtual Environments
+storyarc-env/
+venv/
+env/
+.venv/
+
+# Node
+node_modules/
+frontend/build/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+*.egg
+dist/
+build/
+
+# Environment files
+.env
+.env.*
+*.env
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Audio output
+storyarc/static/audio/*.wav
+storyarc/static/audio/*.mp3

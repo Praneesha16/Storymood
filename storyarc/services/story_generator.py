@@ -29,9 +29,9 @@ class StoryGenerator:
         # Modified for correct Claude parameters in Bedrock
         body = json.dumps({
             "anthropic_version": "bedrock-2023-05-31",
-            "max_tokens": 1000,
+            "max_tokens": 4096,
             "temperature": 0.7,
-            "system": "You are a creative storyteller who crafts engaging and emotionally resonant stories. Respond with only the story text, without any meta-commentary, narration instructions, or text formatting explanations. Do not include phrases like '*clears throat*' or '*speaking in a tone*'. Just tell the story directly as if you are the narrator speaking to the audience.",
+            "system": "You are a creative storyteller who crafts engaging and emotionally resonant stories. Respond with only the story text, without any meta-commentary, narration instructions, or text formatting explanations. Do not include phrases like '*clears throat*' or '*speaking in a tone*'. Just tell the story directly as if you are the narrator speaking to the audience. Always write a COMPLETE story with a proper beginning, middle, and ending. Never cut the story short.",
             "messages": [
                 {"role": "user", "content": prompt}
             ]

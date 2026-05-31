@@ -107,8 +107,8 @@ storyarc/
 
 Once the server is running, you can access the API documentation at:
 
-- Swagger UI: http://localhost:6000/docs
-- ReDoc: http://localhost:6000/redoc
+- Swagger UI: http://localhost:8000/docs
+- ReDoc: http://localhost:8000/redoc
 
 ## API Endpoints
 

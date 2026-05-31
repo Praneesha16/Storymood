@@ -14,11 +14,11 @@ class VoiceGenerator:
         self.speech_key = config.AZURE_SPEECH_KEY
         self.speech_region = config.AZURE_SPEECH_REGION
         self.default_voice = "en-US-JennyNeural"
-        
-        # Map languages to appropriate voices
+          # Map languages to appropriate voices
         self.voice_mapping = {
             "English": {
                 "Wise Grandparent": "en-US-SaraNeural",  # Warm female voice for grandmother
+                "Wise Grandfather": "en-US-GuyNeural",   # Warm male voice for grandfather with custom voice ID IFWXLbKqk9omOAs0kRNJ
                 "Child's Voice": "en-US-AnaNeural",      # Enthusiastic young voice
                 "Celebrity-style": "en-US-JennyNeural",  # Professional voice
                 "Neutral AI": "en-US-GuyNeural",         # Neutral voice
@@ -70,13 +70,17 @@ class VoiceGenerator:
                 "Self": "ml-IN-SobhanaNeural"
             }
         }
-        
-        # Voice style mappings (style, rate, pitch adjustments)
+          # Voice style mappings (style, rate, pitch adjustments)
         self.voice_styles = {
             "Wise Grandparent": {
                 "style": "gentle",
                 "rate": "-10%",  # Slightly slower
                 "pitch": "-5%"   # Slightly lower pitch
+            },
+            "Wise Grandfather": {
+                "style": "calm",
+                "rate": "-15%",  # Slower for gravitas
+                "pitch": "-10%"  # Deeper voice for grandfather
             },
             "Child's Voice": {
                 "style": "excited",

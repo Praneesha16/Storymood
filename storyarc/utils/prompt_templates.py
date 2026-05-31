@@ -43,7 +43,7 @@ def build_story_prompt(data: StoryGenerationRequest) -> str:
     elif data.language.value == "Malayalam":
         prompt += "\n\nUse authentic Malayalam vocabulary and sentence structures. Incorporate culturally relevant references and expressions that would resonate with Malayalam speakers. Include Kerala cultural elements where appropriate."
       # Add standard closing guidance
-    prompt += "\n\nMake it engaging, emotionally vivid, and age-inclusive. Write the story directly without any meta-commentary, narration instructions, or roleplay indicators (such as '*speaking in a tone*' or '*clears throat*'). Just tell the story directly as if you are the narrator."
+    prompt += "\n\nMake it engaging, emotionally vivid, and age-inclusive. Write a COMPLETE story with a clear beginning, middle, and satisfying ending. Do not leave the story unfinished. Write the story directly without any meta-commentary, narration instructions, or roleplay indicators (such as '*speaking in a tone*' or '*clears throat*'). Just tell the story directly as if you are the narrator."
     
     return prompt
 
