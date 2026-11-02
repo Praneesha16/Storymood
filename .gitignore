@@ -1,4 +1,4 @@
-# Virtual Environments
+# Virtual environments
 storyarc-env/
 venv/
 env/
@@ -18,10 +18,10 @@ __pycache__/
 dist/
 build/
 
-# Environment files
+# Environment files (keep the .example files)
 .env
 .env.*
-*.env
+!.env.example
 
 # IDE
 .idea/
@@ -37,6 +37,6 @@ Thumbs.db
 *.log
 logs/
 
-# Audio output
-storyarc/static/audio/*.wav
+# Generated narration audio
 storyarc/static/audio/*.mp3
+storyarc/static/audio/*.wav

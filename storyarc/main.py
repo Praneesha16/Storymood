@@ -1,86 +1,81 @@
+"""StoryMood API. Run with `python main.py` from this folder."""
+import logging
+import os
+import sys
+
 import uvicorn
-from fastapi import FastAPI, Depends, HTTPException, Request
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
-import logging
-import sys
-import asyncio
-import os
 
-# Import configuration
 import config
-
-# Import routers
-from routers import api_router
 from database.dynamodb import dynamodb_client
+from providers import registry
+from providers.base import ProviderError
+from routers import api_router
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s [%(levelname)s] %(message)s",
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+                    handlers=[logging.StreamHandler(sys.stdout)])
+logger = logging.getLogger("storymood")
 
-logger = logging.getLogger(__name__)
-
-# Create FastAPI application
 app = FastAPI(
-    title="StoryArc API",
-    description="AI-powered storytelling app that delivers personalized, emotionally resonant stories",
-    version="1.0.0",
-    docs_url="/docs",
-    redoc_url="/redoc",
+    title="StoryMood API",
+    description="Kid-friendly stories written, narrated and listened to by pluggable AI providers.",
+    version="2.0.0",
 )
 
-# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with actual origins
-    allow_credentials=True,
+    allow_origins=["*"],  # tighten to the frontend origin in production
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Global exception handler
+
+@app.exception_handler(ProviderError)
+async def provider_error_handler(request: Request, exc: ProviderError):
+    return JSONResponse(status_code=502, content={"detail": str(exc)})
+
+
 @app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception):
-    logger.error(f"Unhandled exception: {str(exc)}")
-    return JSONResponse(
-        status_code=500,
-        content={"detail": "Internal server error. Please try again later."}
-    )
+async def unhandled_error_handler(request: Request, exc: Exception):
+    logger.exception("Unhandled error on %s", request.url.path)
+    return JSONResponse(status_code=500, content={"detail": "Something went wrong. Please try again."})
 
-# Startup event to initialize DynamoDB tables and create directories
+
 @app.on_event("startup")
-async def startup_db_client():
-    try:
-        # Initialize DynamoDB tables
-        logger.info("Initializing DynamoDB tables...")
+async def startup() -> None:
+    os.makedirs(config.AUDIO_FILES_DIR, exist_ok=True)
+    for capability, info in registry.describe().items():
+        if info.get("error"):
+            logger.warning("%s provider '%s' unavailable: %s", capability, info["provider"], info["error"])
+        else:
+            logger.info("%s -> %s %s", capability, info["provider"], info["model"] or "")
+    if config.AWS_ACCESS_KEY_ID:
         await dynamodb_client.create_tables_if_not_exist()
-        logger.info("DynamoDB tables initialized successfully")
-        
-        # Ensure audio directory exists
-        logger.info("Ensuring audio directory exists...")
-        os.makedirs(config.AUDIO_FILES_DIR, exist_ok=True)
-        logger.info(f"Audio directory ready: {config.AUDIO_FILES_DIR}")
-    except Exception as e:
-        logger.error(f"Failed to initialize server resources: {str(e)}")
+    else:
+        logger.info("Story vault disabled (no AWS credentials)")
 
-# Include all routers with API prefix
+
 app.include_router(api_router, prefix=config.API_V1_PREFIX)
+app.mount("/static", StaticFiles(directory=config.STATIC_DIR), name="static")
 
-# Mount static files directory for serving audio files
-static_dir = os.path.join(os.path.dirname(__file__), "static")
-app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Health check endpoint
+@app.get("/", include_in_schema=False)
+async def root():
+    return {
+        "app": "StoryMood API",
+        "message": "This is the backend. Open the app at http://localhost:3000 or the API docs at /docs.",
+        "docs": "/docs",
+        "health": "/health",
+    }
+
+
 @app.get("/health", tags=["Health"])
-async def health_check():
-    return {"status": "healthy"}
+async def health():
+    return {"status": "ok", "providers": registry.describe()}
 
-# Run the application with Uvicorn
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=config.APP_ENV == "development")
