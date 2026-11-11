@@ -30,6 +30,9 @@ class CartesiaTTS(TTSProvider):
         if self.model.startswith("sonic-3"):
             # generation_config exists on sonic-3 and newer. Speed range is 0.6 to 1.5.
             body["generation_config"] = {"speed": max(0.6, min(1.5, voice.speed))}
+            if voice.emotion and language == "en":
+                # Emotion steering is documented for English only; other languages keep the voice's own reading.
+                body["generation_config"]["emotion"] = voice.emotion
         headers = {
             "Authorization": f"Bearer {self._key}",
             "Cartesia-Version": config.CARTESIA_API_VERSION,

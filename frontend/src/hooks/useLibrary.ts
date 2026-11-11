@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { SavedStory, StoryResponse } from '../types';
+import { NarrationCue, SavedStory, StoryResponse } from '../types';
 import { useStoredState } from './useStoredState';
 
 const MAX_STORIES = 30;
@@ -15,7 +15,8 @@ export function useLibrary() {
 
   const add = useCallback(
     (story: StoryResponse, voiceName: string | null): SavedStory => {
-      const saved: SavedStory = { id: randomId(), story, audioUrl: null, voiceName, createdAt: new Date().toISOString() };
+      // The server's record id is reused so the two copies stay in step.
+      const saved: SavedStory = { id: story.id || randomId(), story, audioUrl: null, voiceName, createdAt: new Date().toISOString() };
       setItems((prev) => [saved, ...prev].slice(0, MAX_STORIES));
       return saved;
     },
@@ -23,11 +24,18 @@ export function useLibrary() {
   );
 
   const setAudio = useCallback(
-    (id: string, audioUrl: string) => setItems((prev) => prev.map((s) => (s.id === id ? { ...s, audioUrl } : s))),
+    (id: string, audioUrl: string, audioCues: NarrationCue[] = []) =>
+      setItems((prev) => prev.map((s) => (s.id === id ? { ...s, audioUrl, audioCues } : s))),
+    [setItems]
+  );
+
+  const setPicture = useCallback(
+    (id: string, key: string, url: string) =>
+      setItems((prev) => prev.map((s) => (s.id === id ? { ...s, pictures: { ...(s.pictures || {}), [key]: url } } : s))),
     [setItems]
   );
 
   const remove = useCallback((id: string) => setItems((prev) => prev.filter((s) => s.id !== id)), [setItems]);
 
-  return { items, add, setAudio, remove };
+  return { items, add, setAudio, setPicture, remove };
 }

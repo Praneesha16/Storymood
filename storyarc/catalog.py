@@ -4,7 +4,8 @@ The frontend renders these lists from GET /api/v1/catalog, so adding a theme, fe
 narrator or language here is enough to make it appear in the app.
 
 Narrator "voices" map provider name -> voice. A value may be a single voice name (used for
-every language) or a dict keyed by ISO language code. Vendor voice ids were chosen from
+every language) or a dict keyed by ISO language code; a narrator is only offered in the
+languages that have a voice. Vendor voice ids were chosen from
 the Cartesia library for storytelling tone; swap them freely.
 """
 from typing import Any, Dict, List, Optional
@@ -41,13 +42,40 @@ THEMES: List[Dict[str, str]] = [
 ]
 
 FEELINGS: List[Dict[str, str]] = [
-    {"id": "happy", "label": "Happy", "emoji": "😊", "hint": "cheerful, sunny and full of smiles"},
-    {"id": "exciting", "label": "Exciting", "emoji": "⚡", "hint": "fast, surprising and full of wow moments"},
-    {"id": "calm", "label": "Calm", "emoji": "😌", "hint": "gentle, soothing and slow"},
-    {"id": "silly", "label": "Silly", "emoji": "🤭", "hint": "goofy, playful and giggly"},
-    {"id": "magical", "label": "Magical", "emoji": "✨", "hint": "wonder-filled, sparkly and dreamy"},
-    {"id": "brave", "label": "Brave", "emoji": "🦸", "hint": "courageous, kind and confident"},
+    {"id": "happy", "label": "Happy", "emoji": "😊", "hint": "cheerful, sunny and full of smiles", "mood": "happy"},
+    {"id": "exciting", "label": "Exciting", "emoji": "⚡", "hint": "fast, surprising and full of wow moments", "mood": "excited"},
+    {"id": "calm", "label": "Calm", "emoji": "😌", "hint": "gentle, soothing and slow", "mood": "calm"},
+    {"id": "silly", "label": "Silly", "emoji": "🤭", "hint": "goofy, playful and giggly", "mood": "silly"},
+    {"id": "magical", "label": "Magical", "emoji": "✨", "hint": "wonder-filled, sparkly and dreamy", "mood": "magical"},
+    {"id": "brave", "label": "Brave", "emoji": "🦸", "hint": "courageous, kind and confident", "mood": "brave"},
 ]
+
+# Moods tag the whole story (to pick background music) and each paragraph (so the narrator
+# changes delivery). "emotion" is the Cartesia Sonic-3 emotion name the voice adapter sends;
+# "like" lists similar moods to borrow music from when a mood has no track of its own.
+MOODS: List[Dict[str, Any]] = [
+    {"id": "happy", "label": "Happy", "emoji": "😊", "emotion": "happy", "like": ["silly", "tender", "excited"],
+     "hint": "cheerful, sunny, smiling"},
+    {"id": "excited", "label": "Excited", "emoji": "⚡", "emotion": "excited", "like": ["happy", "brave"],
+     "hint": "fast, surprising, wow moments"},
+    {"id": "calm", "label": "Calm", "emoji": "😌", "emotion": "calm", "like": ["sleepy", "tender"],
+     "hint": "gentle, soothing, slow"},
+    {"id": "silly", "label": "Silly", "emoji": "🤪", "emotion": "enthusiastic", "like": ["happy", "excited"],
+     "hint": "goofy, giggly, playful"},
+    {"id": "magical", "label": "Magical", "emoji": "✨", "emotion": "amazed", "like": ["mysterious", "calm"],
+     "hint": "wonder, sparkle, dreams"},
+    {"id": "brave", "label": "Brave", "emoji": "🦸", "emotion": "determined", "like": ["excited", "happy"],
+     "hint": "courage, determination, standing tall"},
+    {"id": "mysterious", "label": "Mysterious", "emoji": "🔍", "emotion": "mysterious", "like": ["magical", "calm"],
+     "hint": "puzzles, hidden things, quiet suspense"},
+    {"id": "sleepy", "label": "Sleepy", "emoji": "🌙", "emotion": "calm", "like": ["calm", "tender"],
+     "hint": "bedtime, yawns, drifting off"},
+    {"id": "tender", "label": "Tender", "emoji": "🥰", "emotion": "affectionate", "like": ["calm", "happy"],
+     "hint": "warm, loving, friendship, kindness"},
+    {"id": "worried", "label": "A little worried", "emoji": "😟", "emotion": "anxious", "like": ["mysterious", "calm"],
+     "hint": "the small problem in the middle, never scary"},
+]
+MOOD_IDS: List[str] = [m["id"] for m in MOODS]
 
 AGE_GROUPS: List[Dict[str, str]] = [
     {"id": "3-5", "label": "3 to 5", "emoji": "🧸",
@@ -65,79 +93,84 @@ LENGTHS: List[Dict[str, Any]] = [
 ]
 
 NARRATORS: List[Dict[str, Any]] = [
+    # A narrator is offered in a language only when the active TTS provider has a voice for it
+    # (no fallback to English). English has true child and elderly voices; the Indian languages
+    # have adult voices only, so the grandparents there are the warmest adults. Malayalam has two.
     {
-        "id": "grandma", "label": "Cozy Grandma", "emoji": "👵", "blurb": "Warm and gentle",
-        "speed": 0.9,
-        "style": "A warm, loving grandmother reading a story to a small child. Gentle, expressive, unhurried.",
+        "id": "girl", "label": "Little Girl", "emoji": "👧", "blurb": "Bright and giggly",
+        "speed": 1.0,
+        "pitch": {"en": 1.15},  # no real child voices exist; the mixer raises an adult voice (chosen by ear)
+        "style": "A cheerful little girl reading a story to her best friend. Bright, bouncy, full of wonder.",
         "voices": {
             "cartesia": {
-                "en": "a2364c9d-1fe3-4553-9eff-100c4fe5ffc8",  # Marge - Seasoned Grace
-                "hi": "f91ab3e6-5071-4e15-b016-cde6f2bcd222",  # Aadhya - Soother
-                "ta": "d4470f50-295e-4e11-82a2-158d45bf6abc",  # Anitha - Warm Guide
-                "te": "cf061d8b-a752-4865-81a2-57570a6e0565",  # Ramya - Graceful Host
-                "ml": "b426013c-002b-4e89-8874-8cd20b68373a",  # Latha - Friendly Host
-            },
-            "openai": "marin",
-        },
-    },
-    {
-        "id": "grandpa", "label": "Jolly Grandpa", "emoji": "👴", "blurb": "Deep and twinkly",
-        "speed": 0.95,
-        "style": "A jolly grandfather telling a tale by the fire. Deep, warm, a chuckle in the voice.",
-        "voices": {
-            "cartesia": {
-                "en": "c99d36f3-5ffd-4253-803a-535c1bc9c306",  # Griffin - Narrator
-                "hi": "9b953e7b-86a8-42f0-b625-1434fb15392b",  # Neeraj - Tour Guide
-                "ta": "d2870b91-1b4c-47ab-81a8-3718d8e9c222",  # Arun - Lively Voice
-                "te": "38bded0a-3ab4-42d1-8e47-2e0b6b10ced9",  # Vikram - Folk Narrator
-                "ml": "374b80da-e622-4dfc-90f6-1eeb13d331c9",  # Vijay - Comfort Voice
-            },
-            "openai": "cedar",
-        },
-    },
-    {
-        "id": "pal", "label": "Playful Pal", "emoji": "🧒", "blurb": "Bouncy and fun",
-        "speed": 1.05,
-        "style": "An excited, playful best friend telling a story. Bright, bouncy, lots of energy.",
-        "voices": {
-            "cartesia": {
-                "en": "2d5b8c3a-116c-4741-acaf-ba4fa289eba2",  # Benji - Joyful Spirit
-                "hi": "faf0731e-dfb9-4cfc-8119-259a79b27e12",  # Riya - College Roommate
-                "ta": "7f98e662-142d-41ba-89a2-12452640ce6d",  # Lakshmi - Everyday Voice
-                "te": "ebecd063-10f4-422e-a8ff-556ce5c4d4e4",  # Pavan - Bright Voice
-                "ml": "374b80da-e622-4dfc-90f6-1eeb13d331c9",  # Vijay - Comfort Voice
+                "en": "32b3f3c5-7171-46aa-abe7-b598964aa793",  # Daisy - Reading Girl
             },
             "openai": "coral",
         },
     },
     {
-        "id": "fairy", "label": "Sparkle Fairy", "emoji": "🧚", "blurb": "Light and lively",
+        "id": "boy", "label": "Little Boy", "emoji": "👦", "blurb": "Bouncy and brave",
         "speed": 1.0,
-        "style": "A sparkly, lively fairy narrator full of wonder. Light, musical, expressive.",
+        "pitch": {"en": 1.10},
+        "style": "An excited little boy telling a story to his friends. Energetic, playful, dramatic.",
         "voices": {
             "cartesia": {
-                "en": "a33f7a4c-100f-41cf-a1fd-5822e8fc253f",  # Lauren - Lively Narrator
+                "en": "c961b81c-a935-4c17-bfb3-ba2239de8c2f",  # Kyle - Approachable Friend, raised 10% by the mixer
+            },
+            "openai": "ballad",
+        },
+    },
+    {
+        "id": "woman", "label": "Kind Lady", "emoji": "👩", "blurb": "Warm and clear",
+        "speed": 0.95,
+        "style": "A warm, kind woman reading aloud to children. Clear, expressive, smiling.",
+        "voices": {
+            "cartesia": {
+                "en": "6ccbfb76-1fc6-48f7-b71d-91ac6298247b",  # Tessa - Kind Companion
                 "hi": "4459a9a5-69d6-4680-b970-e13dc51845b6",  # Siya - Bright Conversationalist
-                "ta": "25d2c432-139c-4035-bfd6-9baaabcdd006",  # Kavya - Warm Presence
-                "te": "07bc462a-c644-49f1-baf7-82d5599131be",  # Sindhu - Conversational Partner
+                "te": "062c17da-6ab6-4ecc-9f8a-d2a3dace8003",  # Deepthi - Solution Navigator
+                "ta": "7f98e662-142d-41ba-89a2-12452640ce6d",  # Lakshmi - Everyday Voice
                 "ml": "b426013c-002b-4e89-8874-8cd20b68373a",  # Latha - Friendly Host
             },
             "openai": "nova",
         },
     },
     {
-        "id": "whisper", "label": "Sleepy Whisper", "emoji": "🌙", "blurb": "Soft for bedtime",
-        "speed": 0.85,
-        "style": "A soft, slow, soothing bedtime whisper. Calm and dreamy, getting gentler at the end.",
+        "id": "man", "label": "Friendly Man", "emoji": "👨", "blurb": "Calm and strong",
+        "speed": 0.95,
+        "style": "A friendly, warm man reading a story to children. Calm, clear, with a smile in the voice.",
         "voices": {
             "cartesia": {
-                "en": "320f7211-3dc3-4292-89b1-3661e8cac27c",  # Evelyn - Peaceful Whisper
-                "hi": "209d9a43-03eb-40d8-a7b7-51a6d54c052f",  # Anita - Meditation Guide
-                "ta": "fb7d8d97-9730-4165-bd79-36b5ce61b5f2",  # Janani - Calm Professional
-                "te": "330c4fa0-1da3-4c55-8e97-951bfd724e20",  # Sarika - Calm Spirit
-                "ml": "b426013c-002b-4e89-8874-8cd20b68373a",  # Latha - Friendly Host
+                "en": "0834f3df-e650-4766-a20c-5a93a43aa6e3",  # Leo - Genuine Companion
+                "hi": "7e8cb11d-37af-476b-ab8f-25da99b18644",  # Anuj - Engaging Narrator
+                "te": "38bded0a-3ab4-42d1-8e47-2e0b6b10ced9",  # Vikram - Folk Narrator
+                "ta": "19f28c21-ae34-499f-b64a-f7b09cd9b516",  # Karthik - Customer Assistant
+                "ml": "374b80da-e622-4dfc-90f6-1eeb13d331c9",  # Vijay - Comfort Voice
             },
-            "openai": "sage",
+            "openai": "echo",
+        },
+    },
+    {
+        "id": "grandma", "label": "Cozy Grandma", "emoji": "👵", "blurb": "Soft and gentle",
+        "speed": 0.9,
+        "pitch": {"en": 0.92},
+        "style": "A warm, loving grandmother reading a story to a small child. Gentle, expressive, unhurried.",
+        "voices": {
+            "cartesia": {
+                "en": "bf991597-6c13-47e4-8411-91ec2de5c466",  # Carol - Task Coach, lowered 8% by the mixer
+            },
+            "openai": "marin",
+        },
+    },
+    {
+        "id": "grandpa", "label": "Jolly Grandpa", "emoji": "👴", "blurb": "Deep and twinkly",
+        "speed": 0.92,
+        "style": "A jolly grandfather telling a tale by the fire. Deep, warm, a chuckle in the voice.",
+        "voices": {
+            "cartesia": {
+                "en": "0ad65e7f-006c-47cf-bd31-52279d487913",  # Rupert - Caring Dad (mature)
+            },
+            "openai": "cedar",
         },
     },
 ]
@@ -171,24 +204,53 @@ def language(code: str) -> Optional[Dict[str, str]]:
     return _by_id(LANGUAGES, "code", code)
 
 
+def mood(mood_id: str) -> Optional[Dict[str, Any]]:
+    return _by_id(MOODS, "id", mood_id)
+
+
+def default_mood(feeling_id: str) -> str:
+    """The mood a story falls back to when the writer did not tag one."""
+    entry = feeling(feeling_id)
+    return entry.get("mood", "happy") if entry else "happy"
+
+
 def resolve_voice(narrator_id: str, provider_name: str, lang: str) -> Optional[str]:
-    """Vendor voice id for a narrator in a language, falling back to English."""
+    """Vendor voice id for a narrator in a language; None when the provider has no such voice."""
     entry = narrator(narrator_id)
     if not entry:
         return None
     voices = entry["voices"].get(provider_name)
     if isinstance(voices, dict):
-        return voices.get(lang) or voices.get("en")
-    return voices
+        return voices.get(lang)
+    return voices  # a single name works in every language (OpenAI)
 
 
-def public() -> Dict[str, Any]:
-    """Catalog for the frontend: vendor voice ids are stripped out."""
+def resolve_pitch(narrator_id: str, lang: str) -> float:
+    """Pitch factor the mixer applies (1.0 = as recorded, 1.15 = younger, 0.9 = older). Per language or one value."""
+    entry = narrator(narrator_id) or {}
+    pitch = entry.get("pitch", 1.0)
+    if isinstance(pitch, dict):
+        return float(pitch.get(lang, 1.0))
+    return float(pitch)
+
+
+def narrator_languages(narrator_id: str, provider_name: str) -> List[str]:
+    """Languages the narrator can read with this provider."""
+    return [l["code"] for l in LANGUAGES if resolve_voice(narrator_id, provider_name, l["code"])]
+
+
+def public(tts_provider: str = "cartesia") -> Dict[str, Any]:
+    """Catalog for the frontend: vendor voice ids are stripped out; each narrator lists its languages."""
     return {
         "languages": LANGUAGES,
         "themes": THEMES,
         "feelings": FEELINGS,
         "age_groups": AGE_GROUPS,
         "lengths": [{k: v for k, v in item.items() if k != "words"} for item in LENGTHS],
-        "narrators": [{k: v for k, v in item.items() if k not in ("voices", "style", "speed")} for item in NARRATORS],
+        "narrators": [
+            {**{k: v for k, v in item.items() if k not in ("voices", "style", "speed", "pitch")},
+             "languages": narrator_languages(item["id"], tts_provider)}
+            for item in NARRATORS
+        ],
+        "moods": [{k: v for k, v in item.items() if k in ("id", "label", "emoji")} for item in MOODS],
     }

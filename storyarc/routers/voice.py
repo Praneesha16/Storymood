@@ -1,9 +1,11 @@
 from typing import Optional
 
-from fastapi import APIRouter, File, Form, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, UploadFile, status
 
+import config
 from models.story_model import NarrationRequest, NarrationResponse, TranscriptionResponse, VoiceCloneResponse
-from services import transcribe_service, voice_service
+from services import library_service, ratelimit, transcribe_service, voice_service
+from services.auth import User, current_user
 
 router = APIRouter()
 
@@ -14,8 +16,12 @@ router = APIRouter()
     status_code=status.HTTP_201_CREATED,
     summary="Read text aloud with a narrator voice",
 )
-async def narrate(request: NarrationRequest):
-    return await voice_service.narrate(request)
+async def narrate(request: NarrationRequest, user: User = Depends(current_user)):
+    ratelimit.hit(user.id, "narration", config.NARRATIONS_PER_HOUR)
+    result = await voice_service.narrate(request)
+    if request.story_id:
+        await library_service.attach_audio(request.story_id, user, result.audio_url, [c.dict() for c in result.cues])
+    return result
 
 
 @router.post(
@@ -43,6 +49,8 @@ async def clone_voice(
     file: UploadFile = File(..., description="A 5 to 20 second recording of one person reading"),
     name: str = Form("My voice"),
     language: str = Form("en"),
+    user: User = Depends(current_user),
 ):
+    ratelimit.hit(user.id, "clone", 5)
     audio = await file.read()
     return await voice_service.clone(audio, file.filename or "clip.webm", file.content_type or "", name, language)

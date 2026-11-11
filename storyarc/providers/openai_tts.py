@@ -23,9 +23,10 @@ class OpenAITTS(TTSProvider):
             "response_format": self.audio_format,
             "speed": max(0.25, min(4.0, voice.speed)),
         }
-        if voice.style and self.model.startswith("gpt-"):
+        if (voice.style or voice.emotion) and self.model.startswith("gpt-"):
             # `instructions` is only honoured by the gpt-* speech models, not tts-1.
-            body["instructions"] = voice.style
+            mood = f" Read this passage in a {voice.emotion} tone." if voice.emotion else ""
+            body["instructions"] = f"{voice.style}{mood}".strip()
         headers = {"Authorization": f"Bearer {self._key}", "Content-Type": "application/json"}
         async with _http.client(headers) as http:
             resp = await http.post(SPEECH_URL, json=body)

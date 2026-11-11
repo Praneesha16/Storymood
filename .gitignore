@@ -37,6 +37,18 @@ Thumbs.db
 *.log
 logs/
 
+# Default background music (download with storyarc/download_music.py)
+storyarc/static/music/*.mp3
+
+# Local story records
+storyarc/data/
+
+# Generated page pictures
+storyarc/static/images/
+
 # Generated narration audio
 storyarc/static/audio/*.mp3
 storyarc/static/audio/*.wav
+
+# Voice comparison samples
+storyarc/static/samples/

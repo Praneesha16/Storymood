@@ -39,16 +39,15 @@ const Maker: React.FC<Props> = ({
   const canClone = catalog.providers.tts.cloning === 'true';
 
   const languageOptions: GridOption[] = catalog.languages.map((l) => ({ id: l.code, label: l.native, emoji: l.emoji, hint: l.label }));
-  const narratorOptions: GridOption[] = catalog.narrators.map((n) => ({ id: n.id, label: n.label, emoji: n.emoji, hint: n.blurb }));
+  // Only narrators that can actually read the chosen language are shown.
+  const narratorOptions: GridOption[] = catalog.narrators
+    .filter((n) => !n.languages || n.languages.includes(draft.language))
+    .map((n) => ({ id: n.id, label: n.label, emoji: n.emoji, hint: n.blurb }));
   const lengthOptions: GridOption[] = catalog.lengths.map((l) => ({ id: l.id, label: `${l.label} · ${l.minutes}`, emoji: l.emoji }));
   const ageOptions: GridOption[] = catalog.age_groups.map((a) => ({ id: a.id, label: `ages ${a.label}`, emoji: a.emoji }));
 
   return (
     <div className="maker" id="make">
-      <Section title="Which language?" sub="the story will be told in it">
-        <OptionGrid options={languageOptions} value={draft.language} onChange={(v) => set('language', v)} ariaLabel="Language" />
-      </Section>
-
       <Section title="What kind of story?" sub="pick a world to visit">
         <OptionGrid options={catalog.themes} value={draft.theme} onChange={(v) => set('theme', v)} ariaLabel="Kind of story" />
       </Section>
@@ -57,7 +56,11 @@ const Maker: React.FC<Props> = ({
         <OptionGrid options={catalog.feelings} value={draft.feeling} onChange={(v) => set('feeling', v)} ariaLabel="Feeling" />
       </Section>
 
-      <Section title="Who will tell it?" sub="every voice reads a little differently">
+      <Section title="Which language?" sub="the story will be told in it">
+        <OptionGrid options={languageOptions} value={draft.language} onChange={(v) => set('language', v)} ariaLabel="Language" />
+      </Section>
+
+      <Section title="Who will tell it?" sub={narratorOptions.length < catalog.narrators.length ? `these voices can read ${catalog.languages.find((l) => l.code === draft.language)?.label || 'this language'}` : 'every voice reads a little differently'}>
         <OptionGrid
           options={narratorOptions}
           value={useCustomVoice ? '' : draft.narrator}

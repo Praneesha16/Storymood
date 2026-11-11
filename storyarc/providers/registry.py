@@ -4,7 +4,7 @@ To add a vendor:
   1. Create providers/<vendor>_<capability>.py with a class extending the matching base
      class from providers/base.py.
   2. Add one line to ADAPTERS below.
-  3. Set LLM_PROVIDER / TTS_PROVIDER / STT_PROVIDER / VIDEO_PROVIDER in .env.
+  3. Set LLM_PROVIDER / TTS_PROVIDER / STT_PROVIDER / VIDEO_PROVIDER / MUSIC_PROVIDER in .env.
   4. If the vendor needs its own voice ids, add them under "voices" in catalog.py.
 """
 import functools
@@ -12,7 +12,7 @@ import importlib
 from typing import Dict, List
 
 import config
-from providers.base import LLMProvider, ProviderError, STTProvider, TTSProvider, VideoProvider
+from providers.base import FileStore, ImageProvider, LLMProvider, MusicProvider, ProviderError, STTProvider, StoreProvider, TTSProvider, VideoProvider
 
 ADAPTERS: Dict[str, Dict[str, str]] = {
     "llm": {
@@ -29,6 +29,22 @@ ADAPTERS: Dict[str, Dict[str, str]] = {
     "video": {
         "none": "providers.video_disabled:DisabledVideo",
     },
+    "music": {
+        "local": "providers.music_local:LocalMusic",
+        "none": "providers.music_disabled:DisabledMusic",
+    },
+    "image": {
+        "openai": "providers.openai_image:OpenAIImage",
+        "none": "providers.image_disabled:DisabledImage",
+    },
+    "store": {
+        "local": "providers.store_local:LocalStore",
+        "dynamodb": "providers.store_dynamodb:DynamoStore",
+    },
+    "files": {
+        "local": "providers.files_local:LocalFiles",
+        "s3": "providers.files_s3:S3Files",
+    },
 }
 
 SELECTED = {
@@ -36,6 +52,10 @@ SELECTED = {
     "tts": config.TTS_PROVIDER,
     "stt": config.STT_PROVIDER,
     "video": config.VIDEO_PROVIDER,
+    "music": config.MUSIC_PROVIDER,
+    "image": config.IMAGE_PROVIDER,
+    "store": config.STORE_PROVIDER,
+    "files": config.FILES_PROVIDER,
 }
 
 
@@ -74,15 +94,40 @@ def video() -> VideoProvider:
     return _load("video", SELECTED["video"])
 
 
+@functools.lru_cache(maxsize=None)
+def music() -> MusicProvider:
+    return _load("music", SELECTED["music"])
+
+
+@functools.lru_cache(maxsize=None)
+def image() -> ImageProvider:
+    return _load("image", SELECTED["image"])
+
+
+@functools.lru_cache(maxsize=None)
+def store() -> StoreProvider:
+    return _load("store", SELECTED["store"])
+
+
+@functools.lru_cache(maxsize=None)
+def files() -> FileStore:
+    return _load("files", SELECTED["files"])
+
+
 def describe() -> Dict[str, Dict[str, str]]:
     """Summary of the active adapters for logs and the /catalog endpoint. Never includes keys."""
     out: Dict[str, Dict[str, str]] = {}
-    for capability, factory in (("llm", llm), ("tts", tts), ("stt", stt), ("video", video)):
+    for capability, factory in (("llm", llm), ("tts", tts), ("stt", stt), ("video", video), ("music", music), ("image", image), ("store", store), ("files", files)):
         try:
             adapter = factory()
+            model = getattr(adapter, "model", "")
+            if capability == "music":
+                from services import mixer  # local import: services depend on this module, not the reverse
+                mixer_state = "ffmpeg" if mixer.available() else "no ffmpeg, voice only"
+                model = f"{sum(adapter.tracks().values())} tracks, {mixer_state}"
             out[capability] = {
                 "provider": adapter.name,
-                "model": getattr(adapter, "model", ""),
+                "model": model,
                 "enabled": "true" if getattr(adapter, "enabled", True) else "false",
                 "cloning": "true" if getattr(adapter, "supports_cloning", False) else "false",
             }

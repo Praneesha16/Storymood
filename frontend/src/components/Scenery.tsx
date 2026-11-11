@@ -25,6 +25,11 @@ const Scenery: React.FC<Props> = ({ variant }) => {
             <stop offset="0" stopColor="#bfe1f0" />
             <stop offset="1" stopColor="#bfe1f0" stopOpacity="0" />
           </linearGradient>
+          <linearGradient id="sc-cloud" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="0.7" stopColor="#f7f3ec" />
+            <stop offset="1" stopColor="#e3e6ea" />
+          </linearGradient>
         </defs>
 
         <rect x="0" y="0" width="1200" height="340" fill="url(#sc-sky)" />
@@ -49,20 +54,20 @@ const Scenery: React.FC<Props> = ({ variant }) => {
           <circle cx="1010" cy={sunY} r="38" fill="#f6c453" stroke={INK} strokeWidth="3" />
         </g>
 
-        {/* clouds: small, high in the sky band, drifting slowly */}
-        {[0, 1, 2].map((i) => (
-          <g
-            key={i}
-            className={`sc-cloud sc-cloud--${i + 1}`}
-            transform={`translate(0 ${hero ? [40, 64, 86][i] : [128, 146, 162][i]}) scale(${[0.8, 0.95, 0.7][i]})`}
-          >
-            <path
-              d="M0 30 q 0 -22 24 -22 q 10 -20 34 -14 q 20 -14 40 4 q 26 -4 30 24 q 10 2 10 12 q -4 10 -14 10 H 8 q -10 0 -8 -14 z"
-              fill="#fff6e6"
-              stroke={INK}
-              strokeWidth="3"
-              strokeLinejoin="round"
-            />
+        {/* clouds: fluffy, high in the sky band, drifting slowly at different speeds.
+            The outer group sets height and size; the inner one carries the CSS drift so the two transforms do not fight. */}
+        {[0, 1, 2, 3].map((i) => (
+          <g key={i} transform={`translate(0 ${hero ? [34, 72, 104, 58][i] : [126, 150, 168, 140][i]}) scale(${[1.0, 1.25, 0.75, 0.9][i]})`}>
+            <g className={`sc-cloud sc-cloud--${i + 1}`}>
+              <path
+                d="M14 44 a 18 18 0 0 1 2 -34 a 22 22 0 0 1 40 -10 a 24 24 0 0 1 42 6 a 18 18 0 0 1 20 32 a 10 10 0 0 1 -6 6 H 18 a 10 10 0 0 1 -4 0 z"
+                fill="url(#sc-cloud)"
+                stroke={INK}
+                strokeWidth="3"
+                strokeLinejoin="round"
+              />
+              <path d="M30 20 a 12 12 0 0 1 20 -8" fill="none" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" opacity="0.9" />
+            </g>
           </g>
         ))}
 
@@ -105,7 +110,6 @@ const Scenery: React.FC<Props> = ({ variant }) => {
             <circle cx="0" cy="-38" r="18" fill={i % 2 ? '#79a65a' : '#8db86a'} stroke={INK} strokeWidth="3" />
           </g>
         ))}
-
 
         {/* path */}
         <path d="M0 326 Q 300 310 600 326 T 1200 322" fill="none" stroke="#c9ad80" strokeWidth="10" strokeLinecap="round" />

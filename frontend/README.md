@@ -38,6 +38,18 @@ scene (`Doodle.tsx`). Colours, fonts and line weights are CSS variables at the t
   so tapping a book on the shelf reopens it and plays again without a new request. Stories are
   also sent to the backend vault best-effort.
 - **Surprise me** picks a random world, feeling and narrator and writes straight away.
+- **Expressive reading.** The writer tags every paragraph with a mood; the narrator (and a
+  cloned family voice) reads each one that way. English only, per Cartesia's docs.
+- **Your own hero.** While naming a character you can add a photo, a drawing or a toy; press
+  Save and it appears as a chip with its picture. The page paintings then take after it.
+- **Pictures on the pages.** Text on the left page, a painted picture on the right, plus a
+  cover picture that also appears in My stories. Pictures arrive in the background with a
+  "painting…" placeholder until they do. Toggle under the book.
+- **Pages turn themselves.** The narration comes with timings for every paragraph, so the
+  book flips to the page being read.
+- **Music under the story.** The backend mixes mood-matched music into the recording itself
+  (quiet under the voice, changing with the story's mood), so saved stories keep their music.
+  The toggle under the book turns it off for the next reading.
 
 While developing, `http://localhost:3000/?preview=story` fills the book with a sample story
 so it can be styled without calling the API. The flag is ignored in builds.
