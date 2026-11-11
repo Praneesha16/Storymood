@@ -1,34 +1,41 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from typing import Dict, Any
-import uuid
+from fastapi import APIRouter, Depends, status
 
-from models.story_model import StoryGenerationRequest, StoryGenerationResponse
-from services.story_generator import story_generator
+import config
+from models.story_model import IllustrateRequest, IllustrateResponse, StoryRequest, StoryResponse
+from services import illustrate_service, library_service, moderation, ratelimit, story_service
+from services.auth import User, current_user
 
 router = APIRouter()
 
+
 @router.post(
-    "/generate-story",
-    response_model=StoryGenerationResponse,
+    "/generate",
+    response_model=StoryResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Generate a new story",
-    description="Generate a new story based on the provided parameters including story type, mood, narrator style, and optional characters and prompts."
+    summary="Write a new children's story",
 )
-async def generate_story(request: StoryGenerationRequest):
-    """
-    Generate a new story based on the provided parameters.
-    
-    - **story_type**: Category or genre of the story (e.g., Adventure, Moral)
-    - **mood**: Desired emotional tone (e.g., Soothing, Intense)
-    - **narrator_style**: Narration voice style (e.g., Wise Grandparent, Child's Voice)
-    - **custom_characters**: Optional list of character objects with name, age, and trait
-    - **private_prompt**: Optional free-form text to include specific elements
-    """
-    try:
-        response = await story_generator.generate_story(request)
-        return response
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to generate story: {str(e)}"
-        )
+async def generate_story(request: StoryRequest, user: User = Depends(current_user)):
+    ratelimit.hit(user.id, "story", config.STORIES_PER_HOUR)
+    await moderation.check(
+        texts=moderation.story_inputs(request.idea, (c.name for c in request.characters), (c.trait for c in request.characters))
+    )
+    await library_service.spend_story(user)
+    story = await story_service.generate(request)
+    record = await library_service.create(user, story)
+    story.id = record["id"]
+    return story
+
+
+@router.post(
+    "/illustrate",
+    response_model=IllustrateResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Paint one picture for a page or the cover",
+)
+async def illustrate(request: IllustrateRequest, user: User = Depends(current_user)):
+    ratelimit.hit(user.id, "picture", config.PICTURES_PER_HOUR)
+    await moderation.check(texts=[r.name for r in request.references], images=[r.image for r in request.references])
+    result = await illustrate_service.illustrate(request)
+    if request.story_id and request.key:
+        await library_service.attach_picture(request.story_id, user, request.key, result.image_url, bool(request.references))
+    return result

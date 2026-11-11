@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+static/audio/*
+static/images/*
+static/music/*.mp3
+static/samples/
+data/
