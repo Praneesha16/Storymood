@@ -9,4 +9,4 @@ class DisabledImage(ImageProvider):
     enabled = False
 
     async def generate(self, prompt: str, *, portrait: bool = True, references: List[Tuple[bytes, str]] = ()) -> Tuple[bytes, str]:
-        raise ProviderError("Pictures are switched off. Set IMAGE_PROVIDER in storyarc/.env to enable them.")
+        raise ProviderError("Pictures are switched off. Set IMAGE_PROVIDER in backend/.env to enable them.")

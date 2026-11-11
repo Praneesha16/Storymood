@@ -1,4 +1,4 @@
-"""Create the StoryMood sign-in (Amazon Cognito) in one go. Run once, from the storyarc folder:
+"""Create the StoryMood sign-in (Amazon Cognito) in one go. Run once, from the backend folder:
 
     python scripts/setup_cognito.py --app-url http://localhost:3000 --prefix storymood-<yourname>
 
@@ -80,7 +80,7 @@ def main() -> int:
     except ClientError as exc:
         print("branding (optional):", exc, file=sys.stderr)
 
-    print("\nPaste into storyarc/.env:\n")
+    print("\nPaste into backend/.env:\n")
     print("AUTH_MODE=cognito")
     print(f"COGNITO_REGION={args.region}")
     print(f"COGNITO_USER_POOL_ID={pool_id}")

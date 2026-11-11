@@ -1,4 +1,4 @@
-// Mirrors storyarc/catalog.py and storyarc/models/story_model.py, plus browser-only types.
+// Mirrors backend/catalog.py and backend/models/story_model.py, plus browser-only types.
 
 export interface Option {
   id: string;

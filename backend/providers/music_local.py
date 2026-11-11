@@ -1,6 +1,6 @@
 """Background music from files on disk. No API, no cost.
 
-Drop tracks into storyarc/static/music named after a mood from catalog.MOODS, for example
+Drop tracks into backend/static/music named after a mood from catalog.MOODS, for example
     happy-sunny-day.mp3   calm_river.mp3   sleepy.m4a   excited-2.ogg
 The part before the first "-", "_" or "." is the mood. Several files per mood are fine; one is
 picked at random each story. Files are re-scanned on every request, so adding one needs no restart.

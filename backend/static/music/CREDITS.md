@@ -26,4 +26,4 @@ Tracks you add yourself follow their own licences.
 | worried | Sneaky Adventure · Thinking Music |
 
 The files are not committed to git (about 120 MB). Re-download them with
-`python download_music.py` from the `storyarc` folder.
+`python scripts/download_music.py` from the `backend` folder.
