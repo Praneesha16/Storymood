@@ -16,7 +16,7 @@ def client(headers: Dict[str, str], timeout: float = config.HTTP_TIMEOUT_SECONDS
 
 def require_key(value: str, env_name: str, vendor: str) -> str:
     if not value:
-        raise ProviderError(f"{vendor} is selected but {env_name} is empty. Add it to storyarc/.env.")
+        raise ProviderError(f"{vendor} is selected but {env_name} is empty. Add it to backend/.env.")
     return value
 
 
@@ -33,7 +33,7 @@ def raise_for_status(resp: httpx.Response, vendor: str) -> None:
         detail = resp.text[:300]
     logger.error("%s HTTP %s: %s", vendor, resp.status_code, detail)
     if resp.status_code in (401, 403):
-        raise ProviderError(f"{vendor} rejected the API key. Check storyarc/.env.")
+        raise ProviderError(f"{vendor} rejected the API key. Check backend/.env.")
     if resp.status_code == 429:
         raise ProviderError(f"{vendor} rate limit reached. Please try again in a moment.")
     raise ProviderError(f"{vendor} error {resp.status_code}: {detail or 'no details'}")

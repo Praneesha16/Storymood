@@ -17,7 +17,7 @@ class S3Files(FileStore):
 
     def __init__(self) -> None:
         if not config.S3_BUCKET:
-            raise ProviderError("FILES_PROVIDER=s3 needs S3_BUCKET in storyarc/.env.")
+            raise ProviderError("FILES_PROVIDER=s3 needs S3_BUCKET in backend/.env.")
         self.client = boto3.client(
             "s3",
             region_name=config.AWS_REGION,

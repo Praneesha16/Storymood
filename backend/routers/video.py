@@ -17,7 +17,7 @@ async def generate_video(request: VideoRequest):
     if not provider.enabled:
         raise HTTPException(
             status_code=status.HTTP_501_NOT_IMPLEMENTED,
-            detail="Video generation is not set up. Set VIDEO_PROVIDER in storyarc/.env.",
+            detail="Video generation is not set up. Set VIDEO_PROVIDER in backend/.env.",
         )
     data = await provider.generate(request.story_text, request.title, request.language)
     return VideoResponse(provider=provider.name, data=data)

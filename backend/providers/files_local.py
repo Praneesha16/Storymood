@@ -1,4 +1,4 @@
-"""Narration and pictures kept under storyarc/static and served by this server. Laptop default."""
+"""Narration and pictures kept under backend/static and served by this server. Laptop default."""
 import asyncio
 import os
 

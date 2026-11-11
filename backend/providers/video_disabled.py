@@ -13,4 +13,4 @@ class DisabledVideo(VideoProvider):
     enabled = False
 
     async def generate(self, story_text: str, title: str, language: str) -> Dict[str, Any]:
-        raise ProviderError("Video generation is not set up yet. Set VIDEO_PROVIDER in storyarc/.env.")
+        raise ProviderError("Video generation is not set up yet. Set VIDEO_PROVIDER in backend/.env.")

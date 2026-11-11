@@ -13,7 +13,7 @@ npm run lint
 The microphone needs a secure context: `localhost` is fine, any other host needs HTTPS.
 
 Everything a child can choose comes from `GET /api/v1/catalog`, so new themes or narrators
-added in `storyarc/catalog.py` appear here without a frontend change.
+added in `backend/catalog.py` appear here without a frontend change.
 
 ## Look and feel
 

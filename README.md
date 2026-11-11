@@ -6,7 +6,7 @@ Works in English, Hindi, Telugu, Tamil and Malayalam.
 
 ```
 storymood/
-├── storyarc/    FastAPI backend (Python 3.10+)
+├── backend/    FastAPI backend (Python 3.10+)
 └── frontend/    React 18 + TypeScript app (Create React App)
 ```
 
@@ -15,11 +15,11 @@ storymood/
 Backend (terminal 1):
 
 ```bash
-cd storyarc
-python -m venv ../storyarc-env && ../storyarc-env/Scripts/activate   # or source ../storyarc-env/bin/activate
+cd backend
+python -m venv .venv && .venv/Scripts/activate   # or: source .venv/bin/activate
 pip install -r requirements.txt
 copy .env.example .env   # then paste your OPENAI_API_KEY and CARTESIA_API_KEY
-python download_music.py # optional: default background music (about 120 MB)
+python scripts/download_music.py # optional: default background music (about 120 MB)
                          # music mixing also needs ffmpeg on PATH: winget install Gyan.FFmpeg
 python main.py           # http://localhost:8000, docs at /docs
 ```
@@ -43,15 +43,15 @@ from `.env`, so swapping a vendor is a one-line change and adding one is a one-f
 | Read aloud (TTS) | Cartesia `sonic-3.5` | OpenAI `gpt-4o-mini-tts` | `TTS_PROVIDER` |
 | Listen (STT) | OpenAI `gpt-transcribe` | Cartesia `ink-whisper` | `STT_PROVIDER` |
 | Video | none (placeholder) | | `VIDEO_PROVIDER` |
-| Background music | your own files in `storyarc/static/music` | none | `MUSIC_PROVIDER` |
+| Background music | your own files in `backend/static/music` | none | `MUSIC_PROVIDER` |
 | Page pictures | OpenAI `gpt-image-2` (low quality, about a cent each) | none | `IMAGE_PROVIDER` |
-| Story records and accounts | JSON files in `storyarc/data` | DynamoDB | `STORE_PROVIDER` |
-| Narration and picture files | `storyarc/static` served by the API | S3 behind CloudFront | `FILES_PROVIDER` |
+| Story records and accounts | JSON files in `backend/data` | DynamoDB | `STORE_PROVIDER` |
+| Narration and picture files | `backend/static` served by the API | S3 behind CloudFront | `FILES_PROVIDER` |
 
 Backend layout:
 
 ```
-storyarc/
+backend/
 ├── main.py                 FastAPI app, CORS, error handling, static audio
 ├── config.py               All settings, read from .env
 ├── catalog.py              Themes, feelings, ages, lengths, narrators, languages, voice ids
@@ -106,7 +106,7 @@ The writer returns an overall `mood` for the story and a mood for every paragrap
   Cartesia documents emotion steering for English only, so other languages keep the voice's
   natural reading. A cloned family voice gets the same treatment.
 - **Background music.** No music is generated. Drop instrumental files into
-  `storyarc/static/music` named `<mood>-anything.mp3` (see the README there). When a story is
+  `backend/static/music` named `<mood>-anything.mp3` (see the README there). When a story is
   read, `services/mixer.py` uses ffmpeg to mix the music into the narration file the way an
   audiobook is produced: a short musical intro, the voice normalised to -18 LUFS, the music
   held 19 dB below it while the voice speaks, a different track cross-faded in when the
@@ -116,7 +116,7 @@ The writer returns an overall `mood` for the story and a mood for every paragrap
   `GET /api/v1/music` shows the tracks found and whether ffmpeg was detected.
   A generative vendor would be a new `MusicProvider` adapter.
   Twenty default tracks by Kevin MacLeod (CC BY 4.0, credit kept in `static/music/CREDITS.md`) are
-  fetched with `python storyarc/download_music.py`; they are not kept in git.
+  fetched with `python backend/scripts/download_music.py`; they are not kept in git.
 
 ### Pictures and self-turning pages
 
@@ -189,19 +189,19 @@ are served by a small Range-aware route in `main.py` so browsers can seek (Starl
 
 ### Deploying
 
-- **Backend:** `storyarc/Dockerfile` builds the API with ffmpeg. Run it on AWS App Runner or a
+- **Backend:** `backend/Dockerfile` builds the API with ffmpeg. Run it on AWS App Runner or a
   Lightsail container with the `.env` values as environment variables, `AUTH_MODE=cognito`,
   `STORE_PROVIDER=dynamodb`, `FILES_PROVIDER=s3` (plus `S3_BUCKET` and `FILES_PUBLIC_BASE`, the
   CloudFront address), `ALLOWED_ORIGINS=https://your-app-address`, `ADMIN_EMAILS=you@example.com`.
   Tables and the sign-in pool are created by the app and by `scripts/setup_cognito.py`.
 - **Frontend:** `npm run build` in `frontend/` with `REACT_APP_API_URL=https://your-api-address`,
   then upload the `build` folder to an S3 bucket behind CloudFront (or Amplify Hosting).
-- Music: copy the `static/music` tracks into the container or mount them; `download_music.py`
+- Music: copy the `static/music` tracks into the container or mount them; `scripts/download_music.py`
   fetches them.
 
 ### Adding a provider
 
-1. Create `storyarc/providers/<vendor>_<capability>.py` with a class that extends the matching
+1. Create `backend/providers/<vendor>_<capability>.py` with a class that extends the matching
    base class in `providers/base.py` and implements its one method.
 2. Register it in `providers/registry.py` under `ADAPTERS`.
 3. Put any keys or model names in `config.py` and `.env.example`.

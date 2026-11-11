@@ -4,7 +4,7 @@ The tracks are by Kevin MacLeod (incompetech.com), licensed Creative Commons: By
 https://creativecommons.org/licenses/by/4.0/. The credit line in static/music/CREDITS.md and in the
 app footer must stay. Files are about 120 MB in total, so they are not committed to git.
 
-Run from this folder:  python download_music.py
+Run from the backend folder:  python scripts/download_music.py
 Already-present files are skipped, so it is safe to run again.
 """
 import os
@@ -14,7 +14,7 @@ import urllib.request
 from urllib.parse import quote
 
 BASE = "https://incompetech.com/music/royalty-free/mp3-royaltyfree/"
-HERE = os.path.dirname(os.path.abspath(__file__))
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # the backend folder
 DEST = os.path.join(HERE, "static", "music")
 
 # mood -> track titles, exactly as incompetech names them

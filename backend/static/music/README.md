@@ -30,6 +30,6 @@ ogg, wav, flac. Loops are best: 30 to 90 seconds of instrumental music that can 
 
 Twenty default tracks (two per mood) by Kevin MacLeod come with the app; see CREDITS.md for the
 licence and the credit line that must stay visible. They are not stored in git: run
-`python download_music.py` from the `storyarc` folder to fetch them.
+`python scripts/download_music.py` from the `backend` folder to fetch them.
 
 Check what was found at http://localhost:8000/api/v1/music

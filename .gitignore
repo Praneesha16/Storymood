@@ -1,5 +1,4 @@
 # Virtual environments
-storyarc-env/
 venv/
 env/
 .venv/
@@ -37,18 +36,16 @@ Thumbs.db
 *.log
 logs/
 
-# Default background music (download with storyarc/download_music.py)
-storyarc/static/music/*.mp3
+# Default background music (download with backend/scripts/download_music.py)
+backend/static/music/*.mp3
 
 # Local story records
-storyarc/data/
+backend/data/
 
 # Generated page pictures
-storyarc/static/images/
+backend/static/images/
 
 # Generated narration audio
-storyarc/static/audio/*.mp3
-storyarc/static/audio/*.wav
+backend/static/audio/*.mp3
+backend/static/audio/*.wav
 
-# Voice comparison samples
-storyarc/static/samples/

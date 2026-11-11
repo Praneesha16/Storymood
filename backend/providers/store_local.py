@@ -1,6 +1,6 @@
 """Library records as JSON files on disk (one per story, one per user). The default for a laptop.
 
-Folder: storyarc/data/{stories,users}. Switch to DynamoDB with STORE_PROVIDER=dynamodb.
+Folder: backend/data/{stories,users}. Switch to DynamoDB with STORE_PROVIDER=dynamodb.
 """
 import asyncio
 import json
